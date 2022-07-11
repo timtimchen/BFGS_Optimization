@@ -10,7 +10,6 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
 % Output
 %   X:       a series of values of the optimizing variable
 %   iter:    total run iteration number
-%   funcEval:  total number of function evaluation (subroutine included)
 
     n = length(x0); % get the dimension of the variable
     I = eye(n , n); % create a identity matrix
@@ -47,8 +46,7 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
         
         % line search
         % alpha = 0.1;
-        [alpha, eval] = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, h);
-        funcEval = funcEval + eval;
+        alpha = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, h);
 
         % update the variable for next iteration
         X(:, iter+1) = X(:, iter) + alpha * direction;
@@ -98,7 +96,7 @@ function gradient = Complex_Step_Gradient(func, x, h)
 end
 
 
-function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
+function alpha = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
 % function wolfe_line_search perform a line search to find a step length
 % satisfying the strong Wolfe conditions  and using complex step gradient approximation
 % referrence: Algorithm 3.5. Page 60. "Numerical Optimization". Nocedal & Wright.
@@ -111,7 +109,6 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
 %  h: Complex Step length
 % OUTPUTS:
 % alpha: search length
-% f_eval:  total number of function evaluation (subroutine included)
 
     % initialize variables
     c1 = 1e-6;
@@ -123,18 +120,15 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
     dphi0 = transpose(g0)*dir;
     i = 0;
     max_iters = 20;
-    f_eval = 0; % record the total number of function evaluations
 
     % search for alpha that satisfies strong-Wolfe conditions
     while true
   
         x = x0 + alpha_i * dir;
         f_i = feval(func, x);
-        f_eval = f_eval + 1;
         g_i = Complex_Step_Gradient(func, x, h);
         if (f_i > f0 + c1*dphi0) || ( (i > 1) && (f_i >= f_im1) )
-            [alpha, eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_im1, alpha_i);
-            f_eval = f_eval + eval;
+            alpha = cs_zoom(func, x0, f0, g0, dir, h, alpha_im1, alpha_i);
             break;
         end
         dphi = transpose(g_i) * dir;
@@ -143,8 +137,7 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
             break;
         end
         if ( dphi >= 0 )
-            [alpha, eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_i, alpha_im1);
-            f_eval = f_eval + eval;
+            alpha = cs_zoom(func, x0, f0, g0, dir, h, alpha_i, alpha_im1);
             break;
         end
   
@@ -164,7 +157,7 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
 
 end
 
-function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_upper)
+function alpha = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_upper)
 % function cs_zoom perform Interpolation to finda trial step length between
 % (alpha_lower, alpha_upper) and using complex step gradient approximation
 % referrence: Algorithm 3.6, Page 61. "Numerical Optimization". Nocedal & Wright.
@@ -179,11 +172,9 @@ function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_
 %  alpha_upper: upper bound of alpha
 % OUTPUTS:
 %  alpha: zoomed alpha
-% f_eval:  total number of function evaluation
 
-    f_eval = 0; % record the total number of function evaluations
     % initialize variables
-    c1 = 1e-6;
+    c1 = 1e-4;
     c2 = 0.9;
     i = 0;
     max_iters = 20;
@@ -194,11 +185,9 @@ function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_
         alpha = alpha_i;
         x = x0 + alpha_i*dir;
         f_i = feval(func,x);
-        f_eval = f_eval + 1;
         g_i = Complex_Step_Gradient(func, x, h);
         x_lo = x0 + alpha_lower*dir;
         f_lo = feval(func, x_lo);
-        f_eval = f_eval + 1;
         if ( (f_i > f0 + c1*alpha_i*dphi0) || ( f_i >= f_lo) )
             alpha_upper = alpha_i;
         else
