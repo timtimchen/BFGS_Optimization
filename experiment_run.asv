@@ -1,8 +1,10 @@
+clear;
 maxIter = 10000; % max iteration number of each run, if the algorithm end at the max iteration it indicate the optimazation is not converged.
-totalTest = 27; % total number of problems in the test set
+totalTest = 32; % total number of problems in the test set
 trial = 20; % number of trials of each algorithm
 topTrial = 5; % number of fasting trials of each algorithm, used to find average the running time
 tol = 1e-6; % the convergence tolerance for the projected gradient
+h = 1e-6; % the convergence tolerance for the projected gradient
 display = false; % whether print iterations details
 
 % a list of function handles of Problems in the test set
@@ -37,7 +39,7 @@ func_handles = {@Rosenbrock;
     @Linear_rank_1;
     @Linear_rank_1_with_0cr;
     @Chebyquad;
-    @D_Chebyquad};
+    @Chebyquad};
 
 % a list of gradient handles of Problems in the test set
 grad_handles = {@D_Rosenbrock;
@@ -118,6 +120,8 @@ x28;
 timeResult = zeros(totalTest, 2);
 iterationResult = zeros(totalTest, 2);
 funcEvalResult = zeros(totalTest, 2);
+timeRatio = zeros(totalTest, 2);
+funcEvalRatio = zeros(totalTest, 2);
 
 % run each problem, optimizated it with BFGS and CS_BFGS separately
 for tn = 1 : totalTest
@@ -144,7 +148,7 @@ for tn = 1 : totalTest
     timetaking = zeros(trial, 1);
     for trial_i = 1:trial
         tic;
-        [x_result, k, funcEval] = CS_BFGS(func_handles{tn}, x0, H0, maxIter, tol, display);
+        [x_result, k, funcEval] = CS_BFGS(func_handles{tn}, x0, H0, h, maxIter, tol, display);
         timetaking(trial_i) = toc;
     end
     st = sort(timetaking);
@@ -153,4 +157,9 @@ for tn = 1 : totalTest
     iterationResult(tn, 2) = k; 
     funcEvalResult(tn, 2)= funcEval;
 
+    % calculate the preformance ratio
+    timeRatio(tn, 1) = timeResult(tn, 1) / min(timeResult(tn, 1), timeResult(tn, 2));
+    timeRatio(tn, 2) = timeResult(tn, 2) / min(timeResult(tn, 1), timeResult(tn, 2));
+    funcEvalRatio(tn, 1) = funcEvalResult(tn, 1) / min(funcEvalResult(tn, 1), funcEvalResult(tn, 2));
+    funcEvalRatio(tn, 2) = funcEvalResult(tn, 2) / min(funcEvalResult(tn, 1), funcEvalResult(tn, 2));
 end

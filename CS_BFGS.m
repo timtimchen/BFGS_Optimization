@@ -1,9 +1,10 @@
-function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
+function [X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, display)
 % Function CS_BFGS performs multivariate local optimization using the BFGS method and a Complex Step approximations of gradients and Hessians.
 % Input
 %   func:    the object function handle, the function should be analytic and complex
 %   x0:      vector of initial start
 %   H0:      initial approximate inverse Hessian
+%   CS_h:    the Complex Step length
 %   maxIter: max number of iteration  
 %   toler:   tolerance for the norm of the gradient
 %   display: true/false a trigger for debugging display
@@ -24,8 +25,7 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
 
     for iter = 1 : maxIter
         % compute the gradient by the Complex Step Method
-        h = 1e-9; % step length
-        g0 = Complex_Step_Gradient(func, X(:, iter), h);  
+        g0 = Complex_Step_Gradient(func, X(:, iter), CS_h);  
 
         fx = feval(func, X(:, iter));
         funcEval = funcEval + 1;
@@ -47,7 +47,7 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
         
         % line search
         % alpha = 0.1;
-        [alpha, eval] = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, h);
+        [alpha, eval] = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, CS_h);
         funcEval = funcEval + eval;
 
         % update the variable for next iteration
@@ -55,7 +55,7 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, maxIter, toler, display)
 
         % update the approximate inverse Hessian with the BFGS Method
         s0 = X(:, iter+1) - X(:, iter);
-        g1 = Complex_Step_Gradient(func, X(:, iter+1), h);  % compute the gradient by the Complex Step Method
+        g1 = Complex_Step_Gradient(func, X(:, iter+1), CS_h);  % compute the gradient by the Complex Step Method
         y0 = g1-g0;
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;

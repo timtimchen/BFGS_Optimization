@@ -6,6 +6,6 @@ clear;
 x0 = [0; 0; 0; 0.1; 0.1; 0.1; 0.1; 0.2; 0.2; 0.2];
 H0 = eye(10);
 tic;
-[x_result, k] = CS_BFGS(@Penalty, x0, H0, 100, 1e-9, true);
+[x_result, k] = CS_BFGS(@Penalty, x0, H0, 1e-6, 100, 1e-6, true);
 %[x_result, k] = BFGS(@Penalty, @D_Penalty, x0, H0, 1000, 1e-9, true);
 timetaking = toc;

@@ -1,8 +1,10 @@
+clear;
 maxIter = 10000; % max iteration number of each run, if the algorithm end at the max iteration it indicate the optimazation is not converged.
-totalTest = 32; % total number of problems in the test set
+totalTest = 31; % total number of problems in the test set
 trial = 20; % number of trials of each algorithm
 topTrial = 5; % number of fasting trials of each algorithm, used to find average the running time
 tol = 1e-6; % the convergence tolerance for the projected gradient
+h = 1e-6; % the convergence tolerance for the projected gradient
 display = false; % whether print iterations details
 
 % a list of function handles of Problems in the test set
@@ -18,7 +20,6 @@ func_handles = {@Rosenbrock;
     @Powell_singular;
     @Wood;
     @Kowalik_and_Osborne;
-    @Osborne_1;
     @Biggs_EXP6;
     @Osborne_2;
     @Watson;
@@ -52,7 +53,6 @@ grad_handles = {@D_Rosenbrock;
     @D_Powell_singular;
     @D_Wood;
     @D_Kowalik_and_Osborne;
-    @D_Osborne_1;
     @D_Biggs_EXP6;
     @D_Osborne_2;
     @D_Watson;
@@ -91,7 +91,6 @@ initPoints = {[-1.2; 1.0];
 [3; -1; 0; 1];
 [-3; -1; -3; -1];
 [0.25; 0.39; 0.415; 0.39];
-[0.5; 1.5; -1; 0.01; 0.02];
 [1; 2; 1; 1; 1; 1];
 [1.3; 0.65; 0.65; 0.7; 0.6; 3; 5; 7; 2; 4.5; 5.5];
 zeros(6,1);
@@ -119,6 +118,7 @@ timeResult = zeros(totalTest, 2);
 iterationResult = zeros(totalTest, 2);
 funcEvalResult = zeros(totalTest, 2);
 timeRatio = zeros(totalTest, 2);
+funcEvalRatio = zeros(totalTest, 2);
 
 % run each problem, optimizated it with BFGS and CS_BFGS separately
 for tn = 1 : totalTest
@@ -145,7 +145,7 @@ for tn = 1 : totalTest
     timetaking = zeros(trial, 1);
     for trial_i = 1:trial
         tic;
-        [x_result, k, funcEval] = CS_BFGS(func_handles{tn}, x0, H0, maxIter, tol, display);
+        [x_result, k, funcEval] = CS_BFGS(func_handles{tn}, x0, H0, h, maxIter, tol, display);
         timetaking(trial_i) = toc;
     end
     st = sort(timetaking);
@@ -157,4 +157,6 @@ for tn = 1 : totalTest
     % calculate the preformance ratio
     timeRatio(tn, 1) = timeResult(tn, 1) / min(timeResult(tn, 1), timeResult(tn, 2));
     timeRatio(tn, 2) = timeResult(tn, 2) / min(timeResult(tn, 1), timeResult(tn, 2));
+    funcEvalRatio(tn, 1) = funcEvalResult(tn, 1) / min(funcEvalResult(tn, 1), funcEvalResult(tn, 2));
+    funcEvalRatio(tn, 2) = funcEvalResult(tn, 2) / min(funcEvalResult(tn, 1), funcEvalResult(tn, 2));
 end
