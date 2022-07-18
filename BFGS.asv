@@ -26,6 +26,8 @@ function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display
     for iter = 1 : maxIter
         % compute the gradient of the current step
         g0 = feval(dfunc, X(:, iter));  
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
 
         % print out debug information
         fx = feval(func, X(:, iter));
@@ -56,6 +58,8 @@ function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display
         % update the approximate inverse Hessian with the BFGS Method
         s0 = X(:, iter+1) - X(:, iter);
         g1 = feval(dfunc, X(:, iter+1));
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
         y0 = g1-g0;
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
@@ -106,6 +110,8 @@ function [alpha, f_eval] = wolfe_line_search(func, dfunc, x0, f0, g0, dir)
         f_i = feval(func, x);
         f_eval = f_eval + 1;
         g_i = feval(dfunc, x);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         if (f_i > f0 + c1*dphi0) || ( (i > 1) && (f_i >= f_im1) )
             [alpha, eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_im1, alpha_i);
             f_eval = f_eval + eval;
@@ -161,6 +167,7 @@ function [alpha, f_eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_lower, alpha
     i = 0;
     max_iters = 20;
     dphi0 = transpose(g0) * dir;
+    n = length(x0);
 
     while true
         alpha_i = 0.5*(alpha_lower + alpha_upper);
@@ -169,6 +176,8 @@ function [alpha, f_eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_lower, alpha
         f_i = feval(func,x);
         f_eval = f_eval + 1;
         g_i = feval(dfunc, x);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         x_lo = x0 + alpha_lower*dir;
         f_lo = feval(func, x_lo);
         f_eval = f_eval + 1;

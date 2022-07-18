@@ -1,4 +1,4 @@
-function [X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, display)
+function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, display)
 % Function CS_BFGS performs multivariate local optimization using the BFGS method and a Complex Step approximations of gradients and Hessians.
 % Input
 %   func:    the object function handle, the function should be analytic and complex
@@ -9,6 +9,7 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, displ
 %   toler:   tolerance for the norm of the gradient
 %   display: true/false a trigger for debugging display
 % Output
+%   Y:       a series of values of the function value
 %   X:       a series of values of the optimizing variable
 %   iter:    total run iteration number
 %   funcEval:  total number of function evaluation (subroutine included)
@@ -23,12 +24,18 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, displ
     X = zeros(n, maxIter+1);
     X(:, 1) = x0; % initial x0 at iteration 1
 
+    % used to store the function value of each iteration
+    Y = zeros(1, maxIter);
+
     for iter = 1 : maxIter
         % compute the gradient by the Complex Step Method
         g0 = Complex_Step_Gradient(func, X(:, iter), CS_h);  
-
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
+        % evalate and store the function value
         fx = feval(func, X(:, iter));
-        funcEval = funcEval + 1;
+        Y(1, iter) = fx;
+        funcEval = funcEval + 1;  % accumulate the function call counter
         % print out debug information
         if (display)
             x_print = sprintf('%f ', X(:, iter));
@@ -56,6 +63,8 @@ function [X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, displ
         % update the approximate inverse Hessian with the BFGS Method
         s0 = X(:, iter+1) - X(:, iter);
         g1 = Complex_Step_Gradient(func, X(:, iter+1), CS_h);  % compute the gradient by the Complex Step Method
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
         y0 = g1-g0;
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
@@ -124,6 +133,7 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
     i = 0;
     max_iters = 20;
     f_eval = 0; % record the total number of function evaluations
+    n = length(x0);
 
     % search for alpha that satisfies strong-Wolfe conditions
     while true
@@ -132,6 +142,8 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
         f_i = feval(func, x);
         f_eval = f_eval + 1;
         g_i = Complex_Step_Gradient(func, x, h);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         if (f_i > f0 + c1*dphi0) || ( (i > 1) && (f_i >= f_im1) )
             [alpha, eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_im1, alpha_i);
             f_eval = f_eval + eval;
@@ -182,6 +194,7 @@ function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_
 % f_eval:  total number of function evaluation
 
     f_eval = 0; % record the total number of function evaluations
+    n = length(x0);
     % initialize variables
     c1 = 1e-6;
     c2 = 0.9;
@@ -196,6 +209,8 @@ function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_
         f_i = feval(func,x);
         f_eval = f_eval + 1;
         g_i = Complex_Step_Gradient(func, x, h);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         x_lo = x0 + alpha_lower*dir;
         f_lo = feval(func, x_lo);
         f_eval = f_eval + 1;

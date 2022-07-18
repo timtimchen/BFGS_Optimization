@@ -1,4 +1,4 @@
 clear;
-x0 = [0.02; 4000; 250];
+x0 = [0.5; -2];
 
-[x, fval, exitflag, output] = fminunc(@Meyer,x0);
+[x, fval, exitflag, output] = fminunc(@Freudenstein_and_Roth,x0);

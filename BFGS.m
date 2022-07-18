@@ -1,4 +1,4 @@
-function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display)
+function [Y, X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display)
 % Function BFGS performs multivariate local optimization using the BFGS method.
 % Input
 %   func:    the object function handle, the function should be analytic
@@ -9,6 +9,7 @@ function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display
 %   toler:   tolerance for the norm of the gradient
 %   display: true/false a trigger for debugging display
 % Output
+%   Y:       a series of values of the function value
 %   X:       a series of values of the optimizing variable
 %   iter:    total run iteration number
 %   funcEval:  total number of function evaluation (subroutine included)
@@ -23,13 +24,20 @@ function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display
     X = zeros(n, maxIter+1);
     X(:, 1) = x0; % initial x0 at iteration 1
 
+    % used to store the function value of each iteration
+    Y = zeros(1, maxIter);
+
     for iter = 1 : maxIter
         % compute the gradient of the current step
         g0 = feval(dfunc, X(:, iter));  
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
 
-        % print out debug information
+        % evalate and store the function value
         fx = feval(func, X(:, iter));
-        funcEval = funcEval + 1;
+        Y(1, iter) = fx;
+        funcEval = funcEval + 1; % accumulate the function call counter
+        % print out debug information
         if (display)
             x_print = sprintf('%f ', X(:, iter));
             g_print = sprintf('%f ', g0);
@@ -56,6 +64,8 @@ function [X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, display
         % update the approximate inverse Hessian with the BFGS Method
         s0 = X(:, iter+1) - X(:, iter);
         g1 = feval(dfunc, X(:, iter+1));
+        % we count n function evalution as each gradient evalution 
+        funcEval = funcEval + n;
         y0 = g1-g0;
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
@@ -98,6 +108,7 @@ function [alpha, f_eval] = wolfe_line_search(func, dfunc, x0, f0, g0, dir)
     i = 0;
     max_iters = 20;
     f_eval = 0; % record the total number of function evaluations
+    n = length(x0);
 
     % search for alpha that satisfies strong-Wolfe conditions
     while true
@@ -106,6 +117,8 @@ function [alpha, f_eval] = wolfe_line_search(func, dfunc, x0, f0, g0, dir)
         f_i = feval(func, x);
         f_eval = f_eval + 1;
         g_i = feval(dfunc, x);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         if (f_i > f0 + c1*dphi0) || ( (i > 1) && (f_i >= f_im1) )
             [alpha, eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_im1, alpha_i);
             f_eval = f_eval + eval;
@@ -161,6 +174,7 @@ function [alpha, f_eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_lower, alpha
     i = 0;
     max_iters = 20;
     dphi0 = transpose(g0) * dir;
+    n = length(x0);
 
     while true
         alpha_i = 0.5*(alpha_lower + alpha_upper);
@@ -169,6 +183,8 @@ function [alpha, f_eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_lower, alpha
         f_i = feval(func,x);
         f_eval = f_eval + 1;
         g_i = feval(dfunc, x);
+        % we count n function evalution as each gradient evalution 
+        f_eval = f_eval + n;
         x_lo = x0 + alpha_lower*dir;
         f_lo = feval(func, x_lo);
         f_eval = f_eval + 1;

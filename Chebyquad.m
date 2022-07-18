@@ -1,4 +1,4 @@
-function [f] = Chebyquad(x)
+    function [f] = Chebyquad(x)
 % Chebyquad function. n is variable, m >= n. 
 %
 % reference: J.J. More and S.M. Wild. Benchmarking derivative-freeoptimization algorithms. P29.
