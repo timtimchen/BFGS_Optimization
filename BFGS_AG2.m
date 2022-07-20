@@ -99,12 +99,11 @@ function gradient = Approximate_Gradient_2(func, x, h)
     
     % initial the return gradient
     gradient = zeros(n, 1);
-    % find the gradient approximation by applying Complex Step and get the rate of change
+    % find the gradient approximation of each component
     for k = 1 : n
-        % add component-wise complex step to each dimension
         x1 = x + H(:, k);
         x2 = x - H(:, k);
-        % get partial derivative by getting the rate of change of the imaginary part of the function value
+        % get partial derivative by getting the avg rate of change
         gradient(k) = (feval(func, x1) - feval(func, x2)) / (2*h);
     end
 end

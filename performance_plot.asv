@@ -1,6 +1,6 @@
-function [] = performance_plot(table)
-    [n , m] = size(table);
-    sorted = sort(table, 1);
+%function [] = performance_plot(table)
+    [n , m] = size(funcEvalRatio);
+    sorted = sort(funcEvalRatio, 1);
     
     yp = zeros(2*n,m);
     xp = zeros(2*n,m);
@@ -26,7 +26,7 @@ function [] = performance_plot(table)
         end
     end
 
-    x_max = 1.2 * max([xp(2*n-1,1), xp(2*n-1,2), xp(2*n-1,3), xp(2*n-1,4)]);
+    x_max = 1.1 * max([xp(2*n-1,1), xp(2*n-1,2), xp(2*n-1,3), xp(2*n-1,4)]);
     for j = 1:m
         xp(2*n,j) = x_max;
         yp(2*n,j) = yp(2*n-1,j);
@@ -36,5 +36,5 @@ function [] = performance_plot(table)
  
     figure;
     plot(xp(:,1),yp(:,2),'-o', xp(:,2), yp(:,2), '-x', xp(:,3), yp(:,3), '-^', xp(:,4), yp(:,4), '-+');
-    legend('BFGS','CS-BFGS', 'BFGS-AG1', 'BFGS-AG2');
-end
+    legend('BFGS','CS-BFGS', 'BFGS_AG1', 'BFGS_AG2');
+%end

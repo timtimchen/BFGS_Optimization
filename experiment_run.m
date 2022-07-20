@@ -158,7 +158,9 @@ minimums = [0.0;
 
 % initial tables to store the running time result, rows for defferent
 % problem test, column 1 for BFGS algorithm, column 2 for Complex-Step BFGS
-% algorithm
+% column 3 for BFGS with an approximate gradient by df = (f(x+h) - f(x)) / h
+% column 3 for BFGS with an approximate gradient by df = (f(x+h) - f(x-h)) / 2h
+
 isSolved = false(totalTest, 4); % true if the algorithm find the minimum (relative error less than tolerence)
 timeResult = zeros(totalTest, 4); % average time per run (averaging from fastest 5 runs)
 iterationResult = zeros(totalTest, 4); % total iteration to terminate
@@ -166,7 +168,7 @@ funcEvalResult = zeros(totalTest, 4); % total times of function evaluations per 
 timeRatio = zeros(totalTest, 4); % for time performance profile
 funcEvalRatio = zeros(totalTest, 4); % for function evaluations performance profile
 
-% run each problem, optimizated it with BFGS and CS_BFGS separately
+% run each problem, optimizated it with four different versions of BFGS algorithm separately
 for tn = 1 : totalTest
     x0 = initPoints{tn}; % get the initial start point
     n = length(x0); % get the dimension
@@ -307,9 +309,9 @@ for tn = 1 : totalTest
             err = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
         isSolved(tn, 4) = err < minTol;
-        %if err >= minTol
+        if err >= minTol
             %fprintf("%d,4 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
-        %end
+        end
     else
         % if the algorithm failed to converge, set results as follows
         timeResult(tn, 4) = Inf;
@@ -330,5 +332,7 @@ for tn = 1 : totalTest
     funcEvalRatio(tn, 3) = funcEvalResult(tn, 3) / minFuncEval;
     funcEvalRatio(tn, 4) = funcEvalResult(tn, 4) / minFuncEval;
 
-    save data_run.mat
+    fprintf("finished test case: %d\n", tn);
 end
+
+save data_run.mat
