@@ -1,10 +1,11 @@
-function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, display)
-% Function CS_BFGS performs multivariate local optimization using the BFGS method and a Complex Step approximations of gradients and Hessians.
+function [Y, X, iter, funcEval] = BFGS_AG_Oh2(func, x0, H0, h, maxIter, toler, display)
+% Function BFGS_AG_Oh2 performs multivariate local optimization using the BFGS method 
+% with an approximate gradient by df = (f(x+h) - f(x-h)) / 2h
 % Input
-%   func:    the object function handle, the function should be analytic and complex
+%   func:    the object function handle
 %   x0:      vector of initial start
 %   H0:      initial approximate inverse Hessian
-%   CS_h:    the Complex Step length
+%   h:       the step length
 %   maxIter: max number of iteration  
 %   toler:   tolerance for the norm of the gradient
 %   display: true/false a trigger for debugging display
@@ -28,10 +29,10 @@ function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, di
     Y = zeros(1, maxIter);
 
     for iter = 1 : maxIter
-        % compute the gradient by the Complex Step Method
-        g0 = Complex_Step_Gradient(func, X(:, iter), CS_h);  
-        % we count n function evalution as each gradient evalution 
-        funcEval = funcEval + n;
+        % compute the approximate gradient
+        g0 = Approximate_Gradient_2(func, X(:, iter), h);  
+        % we count 2n function evalution as each gradient evalution 
+        funcEval = funcEval + 2*n;
         % evalate and store the function value
         fx = feval(func, X(:, iter));
         Y(1, iter) = fx;
@@ -54,7 +55,7 @@ function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, di
         
         % line search
         % alpha = 0.1;
-        [alpha, eval] = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, CS_h);
+        [alpha, eval] = cs_wolfe_line_search(func, X(:, iter), fx, g0, direction, h);
         funcEval = funcEval + eval;
 
         % update the variable for next iteration
@@ -62,11 +63,14 @@ function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, di
 
         % update the approximate inverse Hessian with the BFGS Method
         s0 = X(:, iter+1) - X(:, iter);
-        g1 = Complex_Step_Gradient(func, X(:, iter+1), CS_h);  % compute the gradient by the Complex Step Method
-        % we count n function evalution as each gradient evalution 
-        funcEval = funcEval + n;
+        g1 = Approximate_Gradient_2(func, X(:, iter+1), h);  % compute the gradient by the Complex Step Method
+        % we count 2n function evalution as each gradient evalution 
+        funcEval = funcEval + 2*n;
         y0 = g1-g0;
         demoniator = transpose(y0)*s0;
+        %if y0 == 0
+            %fprintf("alert!\n");
+        %end
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
 
     end
@@ -81,8 +85,9 @@ function [Y, X, iter, funcEval] = CS_BFGS(func, x0, H0, CS_h, maxIter, toler, di
     end
 end
 
-function gradient = Complex_Step_Gradient(func, x, h)
-% Function Complex_Step_Gradient calculate the gradient approximation of a given variable by a Complex Step Method.
+function gradient = Approximate_Gradient_2(func, x, h)
+% Function Approximate_Gradient_2 calculate the gradient approximation 
+% by df = (f(x+h) - f(x-h)) / 2h
 % Input
 %   func:    the object complex function handle
 %   x:       given variable vector
@@ -92,17 +97,17 @@ function gradient = Complex_Step_Gradient(func, x, h)
     
     n = length(x); % get the dimension of the variable
     I = eye(n , n); % create a identity matrix
-    % create a component-wise complex step matrix
-    cs =  h * 1i * I;
-
+    % create a component-wise step matrix
+    H =  h .* I;
+    
     % initial the return gradient
     gradient = zeros(n, 1);
-    % find the gradient approximation by applying Complex Step and get the rate of change
+    % find the gradient approximation of each component
     for k = 1 : n
-        % add component-wise complex step to each dimension
-        x_k = x + cs(:, k);
-        % get partial derivative by getting the rate of change of the imaginary part of the function value
-        gradient(k) = imag(feval(func, x_k)) / h;
+        x1 = x + H(:, k);
+        x2 = x - H(:, k);
+        % get partial derivative by getting the avg rate of change
+        gradient(k) = (feval(func, x1) - feval(func, x2)) / (2*h);
     end
 end
 
@@ -141,9 +146,9 @@ function [alpha, f_eval] = cs_wolfe_line_search(func, x0, f0, g0, dir, h)
         x = x0 + alpha_i * dir;
         f_i = feval(func, x);
         f_eval = f_eval + 1;
-        g_i = Complex_Step_Gradient(func, x, h);
-        % we count n function evalution as each gradient evalution 
-        f_eval = f_eval + n;
+        g_i = Approximate_Gradient_2(func, x, h);
+        % we count 2n function evalution as each gradient evalution 
+        f_eval = f_eval + 2*n;
         if (f_i > f0 + c1*dphi0) || ( (i > 1) && (f_i >= f_im1) )
             [alpha, eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_im1, alpha_i);
             f_eval = f_eval + eval;
@@ -208,9 +213,9 @@ function [alpha, f_eval] = cs_zoom(func, x0, f0, g0, dir, h, alpha_lower, alpha_
         x = x0 + alpha_i*dir;
         f_i = feval(func,x);
         f_eval = f_eval + 1;
-        g_i = Complex_Step_Gradient(func, x, h);
-        % we count n function evalution as each gradient evalution 
-        f_eval = f_eval + n;
+        g_i = Approximate_Gradient_2(func, x, h);
+        % we count 2n function evalution as each gradient evalution 
+        f_eval = f_eval + 2*n;
         x_lo = x0 + alpha_lower*dir;
         f_lo = feval(func, x_lo);
         f_eval = f_eval + 1;

@@ -157,9 +157,10 @@ minimums = [0.0;
 6.50395e-3];
 
 % initial tables to store the running time result, rows for defferent
-% problem test, column 1 for BFGS algorithm, column 2 for Complex-Step BFGS
+% problem test, column 1 for BFGS algorithm, 
+% column 2 for BFGS with an approximate gradient by complex Step
 % column 3 for BFGS with an approximate gradient by df = (f(x+h) - f(x)) / h
-% column 3 for BFGS with an approximate gradient by df = (f(x+h) - f(x-h)) / 2h
+% column 4 for BFGS with an approximate gradient by df = (f(x+h) - f(x-h)) / 2h
 
 isSolved = false(totalTest, 4); % true if the algorithm find the minimum (relative error less than tolerence)
 timeResult = zeros(totalTest, 4); % average time per run (averaging from fastest 5 runs)
@@ -191,7 +192,8 @@ for tn = 1 : totalTest
         st = sort(timetaking); 
         % only average the time of top 5 runs
         timeResult(tn, 1) = sum(st(1:topTrial)) / topTrial; 
-        funcEvalResult(tn, 1)= funcEval;
+        % record the function evaluation by the total function evaluation divide by (dimension + 1)
+        funcEvalResult(tn, 1)= funcEval / (n + 1);
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -201,9 +203,11 @@ for tn = 1 : totalTest
             err = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
         isSolved(tn, 1) = err < minTol;
-        %if err >= minTol
+        if err >= minTol
+            timeResult(tn, 1) = Inf;
+            funcEvalResult(tn, 1)= Inf;
             %fprintf("%d,1 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
-        %end
+        end
     else
         % if the algorithm failed to converge, set results as follows
         timeResult(tn, 1) = Inf;
@@ -211,11 +215,11 @@ for tn = 1 : totalTest
         isSolved(tn, 1) = false;
     end
 
-    % run CS_BFGS algorithm on the test problem several times and record the
+    % run BFGS_AG_CS algorithm on the test problem several times and record the
     % running time, total iterations, and total number of function evaluate
     for trial_i = 1:trial
         tic;
-        [y_result, x_result, k, funcEval] = CS_BFGS(func_handles{tn}, x0, H0, h, maxIter, tol, display);
+        [y_result, x_result, k, funcEval] = BFGS_AG_CS(func_handles{tn}, x0, H0, h, maxIter, tol, display);
         timetaking(trial_i) = toc;
         % if the algorithm failed to converge, no need to run the rest
         if k >= maxIter
@@ -227,7 +231,8 @@ for tn = 1 : totalTest
         st = sort(timetaking);
         % only average the time of top 5 runs
         timeResult(tn, 2) = sum(st(1:topTrial)) / topTrial; 
-        funcEvalResult(tn, 2)= funcEval;
+        % record the function evaluation by the total function evaluation divide by (dimension + 1)
+        funcEvalResult(tn, 2)= funcEval / (n + 1);
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -237,9 +242,11 @@ for tn = 1 : totalTest
             err = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
         isSolved(tn, 2) = err < minTol;
-        %if err >= minTol
+        if err >= minTol
+            timeResult(tn, 2) = Inf;
+            funcEvalResult(tn, 2)= Inf;
             %fprintf("%d,2 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
-        %end
+        end
     else
         % if the algorithm failed to converge, set results as follows
         timeResult(tn, 2) = Inf;
@@ -247,11 +254,11 @@ for tn = 1 : totalTest
         isSolved(tn, 2) = false;
     end
 
-    % run BFGS_AG1 algorithm on the test problem several times and record the
+    % run BFGS_AG_Oh algorithm on the test problem several times and record the
     % running time, total iterations, and total number of function evaluate
     for trial_i = 1:trial
         tic;
-        [y_result, x_result, k, funcEval] = BFGS_AG1(func_handles{tn}, x0, H0, AG1_h, maxIter, tol, display);
+        [y_result, x_result, k, funcEval] = BFGS_AG_Oh(func_handles{tn}, x0, H0, AG1_h, maxIter, tol, display);
         timetaking(trial_i) = toc;
         % if the algorithm failed to converge, no need to run the rest
         if k >= maxIter
@@ -263,7 +270,8 @@ for tn = 1 : totalTest
         st = sort(timetaking);
         % only average the time of top 5 runs
         timeResult(tn, 3) = sum(st(1:topTrial)) / topTrial; 
-        funcEvalResult(tn, 3)= funcEval;
+        % record the function evaluation by the total function evaluation divide by (dimension + 1)
+        funcEvalResult(tn, 3)= funcEval / (n + 1);
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -273,9 +281,11 @@ for tn = 1 : totalTest
             err = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
         isSolved(tn, 3) = err < minTol;
-        %if err >= minTol
+        if err >= minTol
+            timeResult(tn, 3) = Inf;
+            funcEvalResult(tn, 3)= Inf;
             %fprintf("%d,3 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
-        %end
+        end
     else
         % if the algorithm failed to converge, set results as follows
         timeResult(tn, 3) = Inf;
@@ -283,11 +293,11 @@ for tn = 1 : totalTest
         isSolved(tn, 3) = false;
     end
 
-    % run BFGS_AG2 algorithm on the test problem several times and record the
+    % run BFGS_AG_Oh2 algorithm on the test problem several times and record the
     % running time, total iterations, and total number of function evaluate
     for trial_i = 1:trial
         tic;
-        [y_result, x_result, k, funcEval] = BFGS_AG2(func_handles{tn}, x0, H0, h, maxIter, tol, display);
+        [y_result, x_result, k, funcEval] = BFGS_AG_Oh2(func_handles{tn}, x0, H0, h, maxIter, tol, display);
         timetaking(trial_i) = toc;
         % if the algorithm failed to converge, no need to run the rest
         if k >= maxIter
@@ -299,7 +309,8 @@ for tn = 1 : totalTest
         st = sort(timetaking);
         % only average the time of top 5 runs
         timeResult(tn, 4) = sum(st(1:topTrial)) / topTrial; 
-        funcEvalResult(tn, 4)= funcEval;
+        % record the function evaluation by the total function evaluation divide by (dimension + 1)
+        funcEvalResult(tn, 4)= funcEval / (n + 1);
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -310,6 +321,8 @@ for tn = 1 : totalTest
         end
         isSolved(tn, 4) = err < minTol;
         if err >= minTol
+            timeResult(tn, 4) = Inf;
+            funcEvalResult(tn, 4)= Inf;
             %fprintf("%d,4 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
         end
     else

@@ -1,4 +1,9 @@
-function [] = performance_plot(table)
+%function [] = performance_plot(table)
+    table = timeRatio;
+    pTitle = 'Performance ratio of runtime    tol=1e-9,  h=1e-9';
+    pyLabel = 'ρ(α)';
+    pxLabel = 'time';
+
     [n , m] = size(table);
     sorted = sort(table, 1);
     
@@ -35,6 +40,10 @@ function [] = performance_plot(table)
     yp = yp ./ n;
  
     figure;
-    plot(xp(:,1),yp(:,2),'-o', xp(:,2), yp(:,2), '-x', xp(:,3), yp(:,3), '-^', xp(:,4), yp(:,4), '-+');
-    legend('BFGS','CS-BFGS', 'BFGS-AG1', 'BFGS-AG2');
-end
+    plot(xp(:,1),yp(:,2),'-o', xp(:,2), yp(:,2), '-x', xp(:,3), yp(:,3), '-^', xp(:,4), yp(:,4), '-s');
+    legend('BFGS','BFGS-AP-CS', 'BFGS-AG-Oh', 'BFGS-AG-Oh2');
+
+    title(pTitle);
+    xlabel(pxLabel);
+    ylabel(pyLabel);
+%end
