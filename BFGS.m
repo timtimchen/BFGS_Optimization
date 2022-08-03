@@ -41,7 +41,7 @@ function [Y, X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, disp
         if (display)
             x_print = sprintf('%f ', X(:, iter));
             g_print = sprintf('%f ', g0);
-            fprintf('iter: %d, f(x)= %.10f, x=[%s], g=[%s]\n', iter, fx, x_print, g_print);
+            fprintf('iter: %d, f(x)= %.12g, x=[%s], g=[%s]\n', iter, fx, x_print, g_print);
         end
 
         % check if the norm of the gradient meet the stop criteria
@@ -67,6 +67,9 @@ function [Y, X, iter, funcEval] = BFGS(func, dfunc, x0, H0, maxIter, toler, disp
         % we count n function evalution as each gradient evalution 
         funcEval = funcEval + n;
         y0 = g1-g0;
+        %if y0 == 0
+            %fprintf("alert!\n");
+        %end
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
 

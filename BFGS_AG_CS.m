@@ -66,6 +66,9 @@ function [Y, X, iter, funcEval] = BFGS_AG_CS(func, x0, H0, CS_h, maxIter, toler,
         % we count n function evalution as each gradient evalution 
         funcEval = funcEval + n;
         y0 = g1-g0;
+        %if y0 == 0
+            %fprintf("alert!\n");
+        %end
         demoniator = transpose(y0)*s0;
         H_k = (I - (s0*transpose(y0))./demoniator) * H_k * (I - (y0*transpose(s0))./demoniator) + (s0 * transpose(s0))./demoniator;
 
