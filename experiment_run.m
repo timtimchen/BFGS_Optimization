@@ -1,10 +1,10 @@
 clear;
 maxIter = 10000; % max iteration number of each run, if the algorithm end at the max iteration it indicate the optimazation is not converged.
-totalTest = 30; % total number of problems in the test set
+totalTest = 29; % total number of problems in the test set
 trial = 20; % number of trials of each algorithm
 topTrial = 5; % number of fasting trials of each algorithm, used to find average the running time
 tol = 1e-9; % the convergence tolerance for the projected gradient
-minTol = tol; % the tolerance for relative error between the converge function values and the true minimums
+optTol = tol; % the tolerance for relative error between the converge function values and the true minimums
 h = tol; % the convergence tolerance for the projected gradient
 display = false; % whether print iterations details
 
@@ -43,7 +43,6 @@ func_handles = {@Rosenbrock;
     @Linear_full_rank;
     @Linear_rank_1;
     @Linear_rank_1_with_0cr;
-    @Chebyquad;
     @Chebyquad};
 
 % a list of gradient handles of Problems in the test set
@@ -75,7 +74,6 @@ grad_handles = {@D_Rosenbrock;
     @D_Linear_full_rank;
     @D_Linear_rank_1;
     @D_Linear_rank_1_with_0cr;
-    @D_Chebyquad;
     @D_Chebyquad};
 
 % initial start point of each problems in the test set
@@ -112,7 +110,6 @@ x28;
 [1; 1; 1; 1];
 [1; 1; 1; 1];
 [1; 1; 1; 1];
-(1:8)'/(8+1);
 (1:10)'/(10+1)};
 
 % minimums of each problems in the test set
@@ -144,7 +141,6 @@ minimums = [0.0;
 6.0;
 15/7;
 62/17;
-0.00351687372568;   %3.51687e-3;
 0.00650395480088];
 %6.50395e-3];
 
@@ -190,15 +186,15 @@ for tn = 1 : totalTest
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
         if minimums(tn) == 0
-            err = abs(y_result(k) - minimums(tn));
+            optError = abs(y_result(k) - minimums(tn));
         else
-            err = abs((y_result(k) - minimums(tn))/minimums(tn));
+            optError = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
-        isSolved(tn, 1) = err < minTol;
-        if err >= minTol
+        isSolved(tn, 1) = optError < optTol;
+        if optError >= optTol
             timeResult(tn, 1) = Inf;
             funcEvalResult(tn, 1)= Inf;
-            %fprintf("%d,1 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
+            %fprintf("%d,1 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), optError);
         end
     else
         % if the algorithm failed to converge, set results as follows
@@ -229,15 +225,15 @@ for tn = 1 : totalTest
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
         if minimums(tn) == 0
-            err = abs(y_result(k) - minimums(tn));
+            optError = abs(y_result(k) - minimums(tn));
         else
-            err = abs((y_result(k) - minimums(tn))/minimums(tn));
+            optError = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
-        isSolved(tn, 2) = err < minTol;
-        if err >= minTol
+        isSolved(tn, 2) = optError < optTol;
+        if optError >= optTol
             timeResult(tn, 2) = Inf;
             funcEvalResult(tn, 2)= Inf;
-            %fprintf("%d,2 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
+            %fprintf("%d,2 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), optError);
         end
     else
         % if the algorithm failed to converge, set results as follows
@@ -268,15 +264,15 @@ for tn = 1 : totalTest
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
         if minimums(tn) == 0
-            err = abs(y_result(k) - minimums(tn));
+            optError = abs(y_result(k) - minimums(tn));
         else
-            err = abs((y_result(k) - minimums(tn))/minimums(tn));
+            optError = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
-        isSolved(tn, 3) = err < minTol;
-        if err >= minTol
+        isSolved(tn, 3) = optError < optTol;
+        if optError >= optTol
             timeResult(tn, 3) = Inf;
             funcEvalResult(tn, 3)= Inf;
-            %fprintf("%d,3 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
+            %fprintf("%d,3 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), optError);
         end
     else
         % if the algorithm failed to converge, set results as follows
@@ -307,15 +303,15 @@ for tn = 1 : totalTest
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
         if minimums(tn) == 0
-            err = abs(y_result(k) - minimums(tn));
+            optError = abs(y_result(k) - minimums(tn));
         else
-            err = abs((y_result(k) - minimums(tn))/minimums(tn));
+            optError = abs((y_result(k) - minimums(tn))/minimums(tn));
         end
-        isSolved(tn, 4) = err < minTol;
-        if err >= minTol
+        isSolved(tn, 4) = optError < optTol;
+        if optError >= optTol
             timeResult(tn, 4) = Inf;
             funcEvalResult(tn, 4)= Inf;
-            %fprintf("%d,4 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), err);
+            %fprintf("%d,4 : %.12f, %.12f, %.12f\n", tn, y_result(k), minimums(tn), optError);
         end
     else
         % if the algorithm failed to converge, set results as follows
