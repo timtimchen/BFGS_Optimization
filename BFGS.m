@@ -172,7 +172,7 @@ function [alpha, f_eval] = zoom(func, dfunc, x0, f0, g0, dir, alpha_lower, alpha
 
     f_eval = 0; % record the total number of function evaluations
     % initialize variables
-    c1 = 1e-4;
+    c1 = 1e-6;
     c2 = 0.9;
     i = 0;
     max_iters = 20;

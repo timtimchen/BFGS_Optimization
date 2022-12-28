@@ -5,7 +5,7 @@ trial = 20; % number of trials of each algorithm
 topTrial = 5; % number of fasting trials of each algorithm, used to find average the running time
 tol = 1e-9; % the convergence tolerance for the projected gradient
 optTol = tol; % the tolerance for relative error between the converge function values and the true minimums
-h = tol; % the convergence tolerance for the projected gradient
+h = 1e-9; % the convergence tolerance for the projected gradient
 display = false; % whether print iterations details
 
 
@@ -181,7 +181,7 @@ for tn = 1 : totalTest
         % only average the time of top 5 runs
         timeResult(tn, 1) = sum(st(1:topTrial)) / topTrial; 
         % record the function evaluation by the total function evaluation divide by (dimension + 1)
-        funcEvalResult(tn, 1)= funcEval / (n + 1);
+        funcEvalResult(tn, 1)= funcEval;
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -220,7 +220,7 @@ for tn = 1 : totalTest
         % only average the time of top 5 runs
         timeResult(tn, 2) = sum(st(1:topTrial)) / topTrial; 
         % record the function evaluation by the total function evaluation divide by (dimension + 1)
-        funcEvalResult(tn, 2)= funcEval / (n + 1);
+        funcEvalResult(tn, 2)= funcEval;
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -259,7 +259,7 @@ for tn = 1 : totalTest
         % only average the time of top 5 runs
         timeResult(tn, 3) = sum(st(1:topTrial)) / topTrial; 
         % record the function evaluation by the total function evaluation divide by (dimension + 1)
-        funcEvalResult(tn, 3)= funcEval / (n + 1);
+        funcEvalResult(tn, 3)= funcEval;
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -298,7 +298,7 @@ for tn = 1 : totalTest
         % only average the time of top 5 runs
         timeResult(tn, 4) = sum(st(1:topTrial)) / topTrial; 
         % record the function evaluation by the total function evaluation divide by (dimension + 1)
-        funcEvalResult(tn, 4)= funcEval / (n + 1);
+        funcEvalResult(tn, 4)= funcEval;
         %calculate relative error between the converge function values and the
         %true minimums and compare to the given tolerence
         %if the minimums is zero then use the absolute error instead
@@ -322,16 +322,23 @@ for tn = 1 : totalTest
 
     % calculate the preformance ratio of each algorithm
     minTime = min([timeResult(tn, 1); timeResult(tn, 2); timeResult(tn, 3); timeResult(tn, 4)]);
-    timeRatio(tn, 1) = timeResult(tn, 1) / minTime;
-    timeRatio(tn, 2) = timeResult(tn, 2) / minTime;
-    timeRatio(tn, 3) = timeResult(tn, 3) / minTime;
-    timeRatio(tn, 4) = timeResult(tn, 4) / minTime;
+    if isinf(minTime)
+        timeRatio(tn, 1) = timeResult(tn, 1);
+        timeRatio(tn, 2) = timeResult(tn, 2);
+        timeRatio(tn, 3) = timeResult(tn, 3);
+        timeRatio(tn, 4) = timeResult(tn, 4);
+    else
+        timeRatio(tn, 1) = timeResult(tn, 1) / minTime;
+        timeRatio(tn, 2) = timeResult(tn, 2) / minTime;
+        timeRatio(tn, 3) = timeResult(tn, 3) / minTime;
+        timeRatio(tn, 4) = timeResult(tn, 4) / minTime;
+    end
 
-    minFuncEval = min([funcEvalResult(tn, 1); funcEvalResult(tn, 2); funcEvalResult(tn, 3); funcEvalResult(tn, 4)]);
-    funcEvalRatio(tn, 1) = funcEvalResult(tn, 1) / minFuncEval;
-    funcEvalRatio(tn, 2) = funcEvalResult(tn, 2) / minFuncEval;
-    funcEvalRatio(tn, 3) = funcEvalResult(tn, 3) / minFuncEval;
-    funcEvalRatio(tn, 4) = funcEvalResult(tn, 4) / minFuncEval;
+    % calculate the data profile of each algorithm
+    funcEvalRatio(tn, 1) = funcEvalResult(tn, 1) / (n+1);
+    funcEvalRatio(tn, 2) = funcEvalResult(tn, 2) / (n+1);
+    funcEvalRatio(tn, 3) = funcEvalResult(tn, 3) / (n+1);
+    funcEvalRatio(tn, 4) = funcEvalResult(tn, 4) / (n+1);
 
     fprintf("finished test case: %d\n", tn);
 end
